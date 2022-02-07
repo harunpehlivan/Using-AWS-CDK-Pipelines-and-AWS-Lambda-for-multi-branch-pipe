@@ -39,12 +39,12 @@ class PipelineStack(core.Stack):
                 input=CodePipelineSource.code_commit(
                     repository=repo,
                     trigger=aws_codepipeline_actions.CodeCommitTrigger.POLL,
-                    branch=branch
+                    branch=branch,
                 ),
                 env={
                     'BRANCH': branch,
                     'DEV_ACCOUNT_ID': dev_account_id,
-                    'PROD_ACCOUNT_ID': prod_account_id
+                    'PROD_ACCOUNT_ID': prod_account_id,
                 },
                 install_commands=[
                     'gem install cfn-nag',
@@ -52,23 +52,24 @@ class PipelineStack(core.Stack):
                     'pip install -r requirements.txt',
                     'export LC_ALL="en_US.UTF-8"',
                     'locale-gen en_US en_US.UTF-8',
-                    'dpkg-reconfigure locales'
+                    'dpkg-reconfigure locales',
                 ],
                 commands=[
-                    f'cdk synth',
+                    'cdk synth',
                     f'npx cdk synth cdk-pipelines-multi-branch-{branch}/DEV/InfraStack-{branch} > infra_stack.yaml',
-                    'cfn_nag_scan --input-path infra_stack.yaml'
+                    'cfn_nag_scan --input-path infra_stack.yaml',
                 ],
                 role_policy_statements=[
                     PolicyStatement(
-                        actions=[
-                            'codecommit:GetRepository'
-                        ],
+                        actions=['codecommit:GetRepository'],
                         resources=[
                             f'arn:aws:codecommit:{region}:{dev_account_id}:{repo_name}'
-                        ])
-                ]
-            ))
+                        ],
+                    )
+                ],
+            ),
+        )
+
 
         dev_stage_name = 'DEV'
         dev_stage = Application(self, dev_stage_name, branch, env={'account': dev_account_id, 'region': region})
